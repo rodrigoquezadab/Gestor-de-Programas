@@ -11,6 +11,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const cancelButton = document.getElementById("cancelButton");
   const programsListDiv = document.getElementById("programsList");
   const searchInput = document.getElementById("searchInput");
+  const typeFilter = document.getElementById("typeFilter");
+  const categoryFilter = document.getElementById("categoryFilter");
+  const typeInput = document.getElementById("type");
+  const categoryInput = document.getElementById("category");
+  const toggleVisibilitySortButton = document.getElementById("toggleVisibilitySortButton");
+  const darkModeToggle = document.getElementById("darkModeToggle");
+  const darkIcon = document.getElementById("darkIcon");
+  const lightIcon = document.getElementById("lightIcon");
+  const toolsToggleBtn = document.getElementById("toolsToggleBtn");
+  const toolsMenu = document.getElementById("toolsMenu");
 
   // Elementos de acciones generales
   const downloadDataButton = document.getElementById("downloadDataButton");
@@ -49,6 +59,51 @@ document.addEventListener("DOMContentLoaded", () => {
   // Array para almacenar los programas
   let programs = [];
   let programsToImport = [];
+  let isListHidden = false;
+  let isSortedAlphabetically = false;
+
+  // --- DARK MODE LOGIC ---
+  const html = document.documentElement;
+  if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    html.classList.add('dark');
+    darkIcon.classList.remove('hidden');
+    lightIcon.classList.add('hidden');
+  } else {
+    html.classList.remove('dark');
+    darkIcon.classList.add('hidden');
+    lightIcon.classList.remove('hidden');
+  }
+
+  darkModeToggle.addEventListener('click', () => {
+    html.classList.toggle('dark');
+    if (html.classList.contains('dark')) {
+      localStorage.setItem('theme', 'dark');
+      darkIcon.classList.remove('hidden');
+      lightIcon.classList.add('hidden');
+    } else {
+      localStorage.setItem('theme', 'light');
+      darkIcon.classList.add('hidden');
+      lightIcon.classList.remove('hidden');
+    }
+  });
+
+  // --- TOOLS MENU LOGIC ---
+  toolsToggleBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toolsMenu.classList.toggle('hidden');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!toolsToggleBtn.contains(e.target) && !toolsMenu.contains(e.target)) {
+      toolsMenu.classList.add('hidden');
+    }
+    
+    if (!e.target.closest('.card-menu-btn')) {
+      document.querySelectorAll('.card-menu-dropdown').forEach(dropdown => {
+        dropdown.classList.add('hidden');
+      });
+    }
+  });
 
   // --- FUNCIONES DE MODAL ---
   const openProgramModal = (isEdit = false, programData = null) => {
@@ -63,6 +118,8 @@ document.addEventListener("DOMContentLoaded", () => {
       versionInput.value = programData.version;
       usageInfoInput.value = programData.usageInfo;
       urlInput.value = programData.url;
+      typeInput.value = programData.type || "Aplicación de Escritorio";
+      categoryInput.value = programData.category || "Otros";
 
       addButton.classList.add("hidden");
       updateButton.classList.remove("hidden");
@@ -103,15 +160,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const renderPrograms = () => {
     programsListDiv.innerHTML = "";
-    const searchTerm = searchInput.value.toLowerCase();
+    if (isListHidden) {
+      programsListDiv.innerHTML = "<p class='text-center text-gray-500'>La lista está oculta.</p>";
+      return;
+    }
 
-    const filteredPrograms = programs.filter((program) => {
-      return (
-        program.name.toLowerCase().includes(searchTerm) ||
-        program.version.toLowerCase().includes(searchTerm) ||
-        program.usageInfo.toLowerCase().includes(searchTerm)
-      );
+    const searchTerm = searchInput.value.toLowerCase();
+    const typeTerm = typeFilter.value;
+    const categoryTerm = categoryFilter.value;
+
+    let filteredPrograms = programs.filter((program) => {
+      const name = String(program.name || "").toLowerCase();
+      const version = String(program.version || "").toLowerCase();
+      const usageInfo = String(program.usageInfo || "").toLowerCase();
+      const typeStr = String(program.type || "").toLowerCase();
+      const categoryStr = String(program.category || "").toLowerCase();
+
+      const matchesSearch = name.includes(searchTerm) ||
+        version.includes(searchTerm) ||
+        usageInfo.includes(searchTerm) ||
+        typeStr.includes(searchTerm) ||
+        categoryStr.includes(searchTerm);
+      
+      const matchesType = typeTerm === "" || program.type === typeTerm;
+      const matchesCategory = categoryTerm === "" || program.category === categoryTerm;
+
+      return matchesSearch && matchesType && matchesCategory;
     });
+
+    if (isSortedAlphabetically) {
+      filteredPrograms.sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
+    }
 
     if (filteredPrograms.length === 0) {
       programsListDiv.innerHTML =
@@ -121,29 +200,61 @@ document.addEventListener("DOMContentLoaded", () => {
     filteredPrograms.forEach((program) => {
       const programItem = document.createElement("div");
       programItem.className =
-        "program-item bg-white p-4 rounded-lg shadow-md flex justify-between items-center";
+        "program-item bg-white dark:bg-gray-800 p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl";
+      
+      let typeBadgeClass = program.type === "Web App" 
+        ? "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 border-purple-200 dark:border-purple-800/50" 
+        : "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border-blue-200 dark:border-blue-800/50";
+
       programItem.innerHTML = `
-        <div>
-          <h3 class="text-lg font-bold text-gray-800">${
-            program.name
-          } <span class="text-gray-500 text-sm">(${program.version})</span></h3>
-          <p class="text-gray-600 text-sm mt-1">${program.usageInfo}</p>
-          ${
-            program.url
-              ? `<a href="${program.url}" target="_blank" class="text-blue-500 hover:underline text-sm mt-1 block">Ir al sitio web</a>`
-              : ""
-          }
-        </div>
-        <div class="flex space-x-2 mt-2 md:mt-0">
-          <button data-id="${
-            program.id
-          }" class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-3 rounded text-xs transition duration-200 ease-in-out">Editar</button>
-          <button data-id="${
-            program.id
-          }" class="delete-btn bg-red-500 hover:bg-red-600 text-white py-2 px-3 rounded text-xs transition duration-200 ease-in-out">Eliminar</button>
+        <div class="mb-2 flex flex-col h-full">
+          <div class="flex justify-between items-start mb-3 relative">
+            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 leading-tight pr-12">${program.name} <span class="text-brand-500 text-sm font-medium ml-1">${program.version}</span></h3>
+            
+            <div class="absolute right-0 top-0 flex items-center gap-1">
+              ${
+                program.url
+                  ? `<a href="${program.url}" target="_blank" title="Abrir enlace" class="text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors text-lg p-1">🔗</a>`
+                  : ""
+              }
+              <div class="relative">
+                <button class="card-menu-btn text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 px-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-xl font-bold leading-none">
+                  ⋮
+                </button>
+                <div class="card-menu-dropdown absolute right-0 mt-1 w-36 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 hidden z-20 overflow-hidden transform origin-top-right transition-all">
+                  <button data-id="${program.id}" class="edit-btn w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2 text-gray-700 dark:text-gray-200 font-medium">
+                    ✏️ Editar
+                  </button>
+                  <button data-id="${program.id}" class="delete-btn w-full text-left px-4 py-2.5 text-sm hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-colors flex items-center gap-2 text-rose-600 dark:text-rose-400 font-medium border-t border-gray-100 dark:border-gray-700">
+                    🗑️ Eliminar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 mb-3">
+            ${program.type ? `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-lg border ${typeBadgeClass} uppercase tracking-wider">${program.type}</span>` : ''}
+            ${program.category ? `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-lg border bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 uppercase tracking-wider">${program.category}</span>` : ''}
+          </div>
+          <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">${program.usageInfo}</p>
         </div>
       `;
       programsListDiv.appendChild(programItem);
+    });
+
+    // Menús de tarjetas
+    document.querySelectorAll(".card-menu-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const dropdown = btn.nextElementSibling;
+        
+        // Cerrar otros menús primero
+        document.querySelectorAll('.card-menu-dropdown').forEach(d => {
+          if (d !== dropdown) d.classList.add('hidden');
+        });
+        
+        dropdown.classList.toggle("hidden");
+      });
     });
 
     document.querySelectorAll(".edit-btn").forEach((button) => {
@@ -177,6 +288,8 @@ document.addEventListener("DOMContentLoaded", () => {
       version: versionInput.value,
       usageInfo: usageInfoInput.value,
       url: urlInput.value,
+      type: typeInput.value,
+      category: categoryInput.value,
     };
     programs.push(newProgram);
     savePrograms();
@@ -197,6 +310,8 @@ document.addEventListener("DOMContentLoaded", () => {
         version: versionInput.value,
         usageInfo: usageInfoInput.value,
         url: urlInput.value,
+        type: typeInput.value,
+        category: categoryInput.value,
       };
       savePrograms();
       renderPrograms();
@@ -221,8 +336,36 @@ document.addEventListener("DOMContentLoaded", () => {
     cancelButton.classList.add("hidden");
   };
 
-  // --- FUNCIONES DE BÚSQUEDA ---
-  searchInput.addEventListener("keyup", renderPrograms);
+  const handleFilterChange = () => {
+    if (isListHidden) {
+      isListHidden = false;
+      isSortedAlphabetically = false;
+      if (toggleVisibilitySortButton) toggleVisibilitySortButton.innerHTML = "🔤 Ordenar A-Z";
+    }
+    renderPrograms();
+  };
+
+  searchInput.addEventListener("keyup", handleFilterChange);
+  typeFilter.addEventListener("change", handleFilterChange);
+  categoryFilter.addEventListener("change", handleFilterChange);
+
+  if (toggleVisibilitySortButton) {
+    toggleVisibilitySortButton.addEventListener("click", () => {
+      if (!isListHidden && !isSortedAlphabetically) {
+        isSortedAlphabetically = true;
+        toggleVisibilitySortButton.innerHTML = "🙈 Ocultar Lista";
+      } else if (!isListHidden && isSortedAlphabetically) {
+        isListHidden = true;
+        isSortedAlphabetically = false;
+        toggleVisibilitySortButton.innerHTML = "👁️ Mostrar Lista (A-Z)";
+      } else if (isListHidden) {
+        isListHidden = false;
+        isSortedAlphabetically = true;
+        toggleVisibilitySortButton.innerHTML = "🙈 Ocultar Lista";
+      }
+      renderPrograms();
+    });
+  }
 
   // --- FUNCIONES DE EXPORTACIÓN/IMPORTACIÓN ---
   const downloadData = () => {

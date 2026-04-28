@@ -1,250 +1,36 @@
-body {
-  font-family: Arial, sans-serif;
-  line-height: 1.6;
-  margin: 0;
-  padding: 20px;
-  background-color: #f4f4f4;
-  color: #333;
+/* Personalizaciones adicionales si son necesarias */
+/* La mayoría de estilos se manejan mediante clases de utilidad de Tailwind CSS directamente en el HTML */
+
+/* Estilización de la barra de desplazamiento (Scrollbar) para que se vea más premium */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.container {
-  max-width: 800px;
-  margin: auto;
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-h1,
-h2 {
-  text-align: center;
-  color: #333;
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
 }
 
-form div {
-  margin-bottom: 15px;
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
 }
 
-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
-input[type="text"],
-input[type="url"],
-textarea {
-  width: calc(100% - 22px);
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-sizing: border-box; /* Asegura que padding no afecte el ancho total */
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }
 
-textarea {
-  resize: vertical;
-}
-
-button {
-  background-color: #5cb85c;
-  color: white;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  margin-right: 5px;
-}
-
-button:hover {
-  opacity: 0.9;
-}
-
-#updateButton {
-  background-color: #f0ad4e;
-}
-
-#cancelButton {
-  background-color: #777;
-}
-
-.buttons {
-  text-align: right;
-  margin-top: 20px;
-}
-
-.search-container {
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-}
-
-.search-container label {
-  margin-right: 10px;
-  margin-bottom: 0; /* Reset margin for inline display */
-}
-
-#searchInput {
-  flex-grow: 1; /* Ocupa el espacio restante */
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-hr {
-  margin: 30px 0;
-  border: 0;
-  border-top: 1px solid #eee;
-}
-
-.program-item {
-  background: #f9f9f9;
-  border: 1px solid #eee;
-  padding: 15px;
-  margin-bottom: 10px;
-  border-radius: 4px;
-}
-
-.program-item h3 {
-  margin-top: 0;
-  color: #337ab7;
-}
-
-.program-item p {
-  margin: 5px 0;
-  word-wrap: break-word; /* Para que las URLs largas no rompan el layout */
-}
-
-.program-item a {
-  color: #337ab7;
-  text-decoration: none;
-}
-
-.program-item a:hover {
-  text-decoration: underline;
-}
-
-.program-item .actions button {
-  background-color: #d9534f;
-  font-size: 14px;
-  padding: 8px 12px;
-  margin-top: 10px;
-}
-
-.program-item .actions .edit-btn {
-  background-color: #5bc0de;
-  margin-right: 5px;
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-  body {
-    padding: 10px;
-  }
-
-  .container {
-    padding: 15px;
-  }
-
-  input[type="text"],
-  input[type="url"],
-  textarea {
-    width: 100%; /* Ocupa todo el ancho disponible */
-  }
-
-  .buttons {
-    text-align: center;
-  }
-
-  .buttons button {
-    display: block;
-    width: 100%;
-    margin-bottom: 10px;
-  }
-
-  .buttons button:last-child {
-    margin-bottom: 0;
-  }
-
-  .search-container {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .search-container label {
-    margin-bottom: 5px;
-  }
-  #searchInput {
-    width: 100%;
-  }
-}
-
-/* ... (tus estilos existentes) ... */
-
-.actions-toolbar {
-  margin-bottom: 15px;
-  text-align: right; /* Alinea el botón a la derecha, puedes cambiarlo a 'left' o 'center' */
-}
-
-.toolbar-button {
-  background-color: #007bff; /* Un color azul, por ejemplo */
-  color: white;
-  padding: 8px 15px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease;
-}
-
-.toolbar-button:hover {
-  background-color: #0056b3; /* Un azul más oscuro al pasar el mouse */
-}
-
-/* Ajustes para responsividad si es necesario */
-@media (max-width: 600px) {
-  .actions-toolbar {
-    text-align: center; /* Centra el botón en pantallas pequeñas */
-    margin-top: 10px;
-  }
-  .toolbar-button {
-    width: 100%;
-    padding: 10px;
-  }
-}
-
-/* style.css */
-
-/* ... (tus estilos existentes) ... */
-
-/* Normaliza la altura de los botones de la barra de herramientas */
-.actions-toolbar button,
-.actions-toolbar label {
-  /* Asegura que todos se comporten de forma similar como bloques en línea */
-  display: inline-flex; /* Usar inline-flex para centrar contenido si el texto varía en altura */
-  align-items: center; /* Centrar verticalmente el texto/contenido */
-  justify-content: center; /* Centrar horizontalmente si el ancho lo permite */
-  min-height: 42px; /* Establece una altura mínima fija si Tailwind py-2 px-4 no es suficiente */
-  /* El py-2 px-4 de Tailwind suele dar una altura de 40px (16px arriba + 16px abajo + ~8px de altura de texto por defecto).
-     Podrías ajustar este min-height si sientes que el padding de Tailwind no es exactamente el que quieres. */
-}
-
-/* Opcional: si usas la clase 'hidden' de Tailwind, asegúrate de que esté cargada correctamente. */
-.hidden-input-container {
-  display: none !important;
-}
-
-/* Opcional: si quieres mejorar la responsividad de los botones en móviles */
-@media (max-width: 767px) {
-  .program-item .edit-btn,
-  .program-item .delete-btn {
-    width: 100%;
-  }
-
-  /* Ajuste para los botones de la barra de herramientas en móviles */
-  .actions-toolbar {
-    flex-direction: column; /* Apila los botones en columnas en pantallas pequeñas */
-    align-items: stretch; /* Estira los botones para que ocupen todo el ancho */
-    gap: 8px; /* Pequeño espacio entre ellos */
-  }
+/* Transiciones suaves en toda la página para el Modo Oscuro */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
 }
